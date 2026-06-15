@@ -127,7 +127,7 @@ trait Loggable
      *
      * @return Actionlog
      */
-    public function logCheckout($note, $target, $action_date = null, $originalValues = [], $quantity = 1)
+    public function logCheckout($note, $target, $action_date = null, $originalValues = [], $quantity = 1, ?string $filename = null)
     {
 
         $log = new Actionlog;
@@ -204,6 +204,7 @@ trait Loggable
             $log->log_meta = json_encode($changed);
         }
 
+        $log->filename = $filename;
         $log->logaction('checkout');
 
         return $log;
@@ -264,7 +265,7 @@ trait Loggable
      *
      * @return Actionlog
      */
-    public function logCheckin($target, $note, $action_date = null, $originalValues = [])
+    public function logCheckin($target, $note, $action_date = null, $originalValues = [], ?string $filename = null)
     {
         $log = new Actionlog;
 
@@ -335,6 +336,7 @@ trait Loggable
             $log->log_meta = json_encode($changed);
         }
 
+        $log->filename = $filename;
         $log->logaction('checkin from');
 
         return $log;
