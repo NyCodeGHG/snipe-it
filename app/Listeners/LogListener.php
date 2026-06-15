@@ -22,7 +22,7 @@ class LogListener
      */
     public function onCheckoutableCheckedIn(CheckoutableCheckedIn $event)
     {
-        $event->checkoutable->logCheckin($event->checkedOutTo, $event->note, $event->action_date, $event->originalValues);
+        $event->checkoutable->logCheckin($event->checkedOutTo, $event->note, $event->action_date, $event->originalValues, $event->filename);
     }
 
     /**
@@ -38,7 +38,8 @@ class LogListener
             $event->checkedOutTo,
             $event->checkoutable->last_checkout,
             $event->originalValues,
-            $event->quantity
+            $event->quantity,
+            $event->filename
         );
     }
 
