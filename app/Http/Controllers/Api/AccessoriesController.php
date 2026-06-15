@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\AccessoryCheckoutRequest;
 use App\Http\Requests\ImageUploadRequest;
 use App\Http\Requests\StoreAccessoryRequest;
+use App\Http\Requests\UploadFileRequest;
 use App\Http\Traits\CheckInOutTrait;
 use App\Http\Transformers\AccessoriesTransformer;
 use App\Http\Transformers\ActionlogsTransformer;
@@ -314,8 +315,13 @@ class AccessoriesController extends Controller
         $accessory->checkout_qty = $request->input('checkout_qty', 1);
         $payload = null;
 
+        $file_name = null;
+        if ($request->hasFile('file')) {
+            $file_name = $request->handleFile('private_uploads/accessories/', 'checkout-'.$accessory->id, $request->file('file'));
+        }
+
         // Keep checkout rows and checkout log/event atomic to avoid ghost assignments.
-        DB::transaction(function () use ($accessory, $request, $target, &$payload): void {
+        DB::transaction(function () use ($accessory, $request, $target, $file_name, &$payload): void {
             for ($i = 0; $i < $accessory->checkout_qty; $i++) {
 
                 $accessory_checkout = new AccessoryCheckout([
@@ -347,6 +353,8 @@ class AccessoriesController extends Controller
                 $request->input('note'),
                 [],
                 $accessory->checkout_qty,
+                false,
+                $file_name,
             ));
         });
 
@@ -367,7 +375,7 @@ class AccessoriesController extends Controller
      *
      * @internal param int $accessoryId
      */
-    public function checkin(Request $request, $accessoryUserId = null)
+    public function checkin(UploadFileRequest $request, $accessoryUserId = null)
     {
         if (is_null($accessory_checkout = AccessoryCheckout::find($accessoryUserId))) {
             return response()->json(Helper::formatStandardApiResponse('error', null, trans('admin/accessories/message.does_not_exist', ['id' => $accessoryUserId])));
@@ -376,7 +384,12 @@ class AccessoriesController extends Controller
         $accessory = Accessory::find($accessory_checkout->accessory_id);
         $this->authorize('checkin', $accessory);
 
-        $accessory->logCheckin(User::find($accessory_checkout->assigned_to), $request->input('note'));
+        $file_name = null;
+        if ($request->hasFile('file')) {
+            $file_name = $request->handleFile('private_uploads/accessories/', 'checkin-'.$accessory->id, $request->file('file'));
+        }
+
+        $accessory->logCheckin(User::find($accessory_checkout->assigned_to), $request->input('note'), null, [], $file_name);
 
         // Was the accessory updated?
         if ($accessory_checkout->delete()) {

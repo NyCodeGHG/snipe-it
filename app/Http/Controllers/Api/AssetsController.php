@@ -10,6 +10,7 @@ use App\Http\Requests\FilterRequest;
 use App\Http\Requests\ImageUploadRequest;
 use App\Http\Requests\StoreAssetRequest;
 use App\Http\Requests\UpdateAssetRequest;
+use App\Http\Requests\UploadFileRequest;
 use App\Http\Traits\MigratesLegacyAssetLocations;
 use App\Http\Transformers\ActionlogsTransformer;
 use App\Http\Transformers\AssetsTransformer;
@@ -1085,9 +1086,14 @@ class AssetsController extends Controller
         //            $asset->location_id = $target->rtd_location_id;
         //        }
 
+        $file_name = null;
+        if ($request->hasFile('file')) {
+            $file_name = $request->handleFile('private_uploads/assets/', 'checkout-'.$asset->id, $request->file('file'));
+        }
+
         // Keep checkout mutation + checkout logging/event side effects atomic.
-        $wasCheckedOut = DB::transaction(function () use ($asset, $target, $checkout_at, $expected_checkin, $note, $asset_name): bool {
-            return $asset->checkOut($target, auth()->user(), $checkout_at, $expected_checkin, $note, $asset_name, $asset->location_id);
+        $wasCheckedOut = DB::transaction(function () use ($asset, $target, $checkout_at, $expected_checkin, $note, $asset_name, $file_name): bool {
+            return $asset->checkOut($target, auth()->user(), $checkout_at, $expected_checkin, $note, $asset_name, $asset->location_id, false, $file_name);
         });
 
         if ($wasCheckedOut) {
@@ -1106,7 +1112,7 @@ class AssetsController extends Controller
      *
      * @since [v4.0]
      */
-    public function checkin(Request $request, $asset_id): JsonResponse
+    public function checkin(UploadFileRequest $request, $asset_id): JsonResponse
     {
         $asset = Asset::with('model')->findOrFail($asset_id);
         $this->authorize('checkin', $asset);
@@ -1173,6 +1179,11 @@ class AssetsController extends Controller
                 $acceptance->delete();
             });
 
+        $file_name = null;
+        if ($request->hasFile('file')) {
+            $file_name = $request->handleFile('private_uploads/assets/', 'checkin-'.$asset->id, $request->file('file'));
+        }
+
         if ($asset->save()) {
 
             // Update the location of any child assets
@@ -1180,7 +1191,7 @@ class AssetsController extends Controller
                 ->where('assigned_to', $asset->id)
                 ->update(['location_id' => $asset->location_id]);
 
-            event(new CheckoutableCheckedIn($asset, $target, auth()->user(), $request->input('note'), $checkin_at, $originalValues));
+            event(new CheckoutableCheckedIn($asset, $target, auth()->user(), $request->input('note'), $checkin_at, $originalValues, $file_name));
 
             return response()->json(Helper::formatStandardApiResponse('success', [
                 'asset_tag' => e($asset->asset_tag),

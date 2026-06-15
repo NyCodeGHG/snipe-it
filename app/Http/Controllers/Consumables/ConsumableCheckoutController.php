@@ -5,13 +5,13 @@ namespace App\Http\Controllers\Consumables;
 use App\Events\CheckoutableCheckedOut;
 use App\Helpers\Helper;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UploadFileRequest;
 use App\Models\CheckoutAcceptance;
 use App\Models\Consumable;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 
 class ConsumableCheckoutController extends Controller
 {
@@ -68,7 +68,7 @@ class ConsumableCheckoutController extends Controller
      *
      * @throws AuthorizationException
      */
-    public function store(Request $request, $consumableId)
+    public function store(UploadFileRequest $request, $consumableId)
     {
         if (is_null($consumable = Consumable::with('users')->find($consumableId))) {
             return redirect()->route('consumables.index')->with('error', trans('admin/consumables/message.not_found'));
@@ -118,6 +118,11 @@ class ConsumableCheckoutController extends Controller
 
         $consumable->checkout_qty = $quantity;
 
+        $file_name = null;
+        if ($request->hasFile('file')) {
+            $file_name = $request->handleFile('private_uploads/consumables/', 'checkout-'.$consumable->id, $request->file('file'));
+        }
+
         event(new CheckoutableCheckedOut(
             $consumable,
             $user,
@@ -126,6 +131,7 @@ class ConsumableCheckoutController extends Controller
             [],
             $consumable->checkout_qty,
             $request->boolean('sign_in_place'),
+            $file_name,
         ));
 
         $request->request->add(['checkout_to_type' => 'user']);
