@@ -10,6 +10,7 @@ use App\Models\License;
 use App\Models\LicenseSeat;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -95,7 +96,7 @@ class FileUploadOnCheckinTest extends TestCase
         Storage::fake('local');
 
         $component = Component::factory()->checkedOutToAsset()->create();
-        $componentAssetId = \Illuminate\Support\Facades\DB::table('components_assets')
+        $componentAssetId = DB::table('components_assets')
             ->where('component_id', $component->id)
             ->value('id');
 
