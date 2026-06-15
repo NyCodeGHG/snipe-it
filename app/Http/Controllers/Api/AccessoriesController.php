@@ -23,6 +23,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class AccessoriesController extends Controller
 {
@@ -389,7 +390,11 @@ class AccessoriesController extends Controller
             $file_name = $request->handleFile('private_uploads/accessories/', 'checkin-'.$accessory->id, $request->file('file'));
         }
 
-        $accessory->logCheckin(User::find($accessory_checkout->assigned_to), $request->input('note'), null, [], $file_name);
+        $accessory->logCheckin(User::find($accessory_checkout->assigned_to), $request->input('note'), null, []);
+
+        if ($file_name && Gate::allows('files', $accessory)) {
+            $accessory->logUpload($file_name, null);
+        }
 
         // Was the accessory updated?
         if ($accessory_checkout->delete()) {

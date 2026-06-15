@@ -10,6 +10,7 @@ use App\Events\UserMerged;
 use App\Models\Actionlog;
 use App\Models\LicenseSeat;
 use App\Models\User;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 
 class LogListener
@@ -22,7 +23,14 @@ class LogListener
      */
     public function onCheckoutableCheckedIn(CheckoutableCheckedIn $event)
     {
-        $event->checkoutable->logCheckin($event->checkedOutTo, $event->note, $event->action_date, $event->originalValues, $event->filename);
+        $event->checkoutable->logCheckin($event->checkedOutTo, $event->note, $event->action_date, $event->originalValues);
+
+        if ($event->filename) {
+            $item = $event->checkoutable instanceof LicenseSeat ? $event->checkoutable->license : $event->checkoutable;
+            if (Gate::allows('files', $item)) {
+                $event->checkoutable->logUpload($event->filename, null);
+            }
+        }
     }
 
     /**
@@ -38,9 +46,15 @@ class LogListener
             $event->checkedOutTo,
             $event->checkoutable->last_checkout,
             $event->originalValues,
-            $event->quantity,
-            $event->filename
+            $event->quantity
         );
+
+        if ($event->filename) {
+            $item = $event->checkoutable instanceof LicenseSeat ? $event->checkoutable->license : $event->checkoutable;
+            if (Gate::allows('files', $item)) {
+                $event->checkoutable->logUpload($event->filename, null);
+            }
+        }
     }
 
     /**

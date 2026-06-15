@@ -18,6 +18,7 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
@@ -334,7 +335,7 @@ class ComponentsController extends Controller
             }
 
             // Keep pivot + action log in one transaction so checkout is all-or-nothing.
-            DB::transaction(function () use ($component, $request, $asset, $file_name): void {
+            DB::transaction(function () use ($component, $request, $asset): void {
                 $component->assigned_to = $request->input('assigned_to');
 
                 $component->assets()->attach($component->id, [
@@ -346,8 +347,12 @@ class ComponentsController extends Controller
                     'note' => $request->input('note'),
                 ]);
 
-                $component->logCheckout($request->input('note'), $asset, null, [], $request->get('assigned_qty', 1), $file_name);
+                $component->logCheckout($request->input('note'), $asset, null, [], $request->get('assigned_qty', 1));
             });
+
+            if ($file_name && Gate::allows('files', $component)) {
+                $component->logUpload($file_name, null);
+            }
 
             return response()->json(Helper::formatStandardApiResponse('success', null, trans('admin/components/message.checkout.success')));
         }

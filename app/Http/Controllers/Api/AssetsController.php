@@ -1210,7 +1210,7 @@ class AssetsController extends Controller
      *
      * @since [v6.0]
      */
-    public function checkinByTag(Request $request, $tag = null): JsonResponse
+    public function checkinByTag(UploadFileRequest $request, $tag = null): JsonResponse
     {
         $this->authorize('checkin', Asset::class);
         if ($tag == null && null !== ($request->input('asset_tag'))) {
