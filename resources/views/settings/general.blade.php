@@ -480,6 +480,22 @@
                            </div>
                            <!-- /.form-group -->
 
+                           <!-- Require a non-generic User-Agent on API requests -->
+                           <div class="form-group {{ $errors->has('require_user_agent_on_api') ? 'error' : '' }}">
+                               <div class="col-md-8 col-md-offset-3">
+                                   <label class="form-control">
+                                       <input type="hidden" name="require_user_agent_on_api" value="0" />
+                                       <input type="checkbox" value="1" name="require_user_agent_on_api" {{ (old('require_user_agent_on_api', $setting->require_user_agent_on_api)) == '1' ? ' checked="checked"' : '' }} aria-label="require_user_agent_on_api" id="require_user_agent_on_api">
+                                       <label for="require_user_agent_on_api">{{ trans('admin/settings/general.require_user_agent_on_api_text') }}</label>
+                                   </label>
+                                   <p class="help-block">
+                                       {{ trans('admin/settings/general.require_user_agent_on_api_help') }}
+                                   </p>
+                                   {!! $errors->first('require_user_agent_on_api', '<span class="alert-msg" aria-hidden="true">:message</span>') !!}
+                               </div>
+                           </div>
+                           <!-- /.form-group -->
+
                        </fieldset>
 
 

@@ -73,6 +73,7 @@ class Setting extends Model
         'label2_asset_logo' => 'boolean',
         'require_checkinout_notes' => 'boolean',
         'manager_view_enabled' => 'boolean',
+        'require_user_agent_on_api' => 'boolean',
     ];
 
     /**
