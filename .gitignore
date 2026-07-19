@@ -49,7 +49,6 @@ tests/_output/*
 tests/_support/_generated/*
 tests/coverage/*
 /npm-debug.log
-/public/build
 /public/hot
 /storage/oauth-private.key
 /storage/oauth-public.key

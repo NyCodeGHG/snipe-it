@@ -161,6 +161,20 @@ export default defineConfig({
         sourcemap: true,
         outDir: 'public/build',
         emptyOutDir: true,
+        // Pin output filenames (no content hash). Snipe-IT commits the
+        // compiled build/ directory into git so end-users who download or
+        // clone the repo get a working app without needing Node/npm.
+        // Content-hashed filenames would churn every rebuild and create
+        // massive commit diffs + orphaned files. Cache-busting on user
+        // upgrades falls back to ETag / Last-Modified from the web server;
+        // a hard-refresh may be needed once after an upgrade.
+        rollupOptions: {
+            output: {
+                entryFileNames: 'assets/[name].js',
+                chunkFileNames: 'assets/[name].js',
+                assetFileNames: 'assets/[name].[ext]',
+            },
+        },
     },
 
     css: {
