@@ -5,6 +5,7 @@
         "contributors:check": "all-contributors check",
         "contributors:generate": "all-contributors generate",
         "dev": "vite",
+        "watch": "vite build --watch",
         "build": "vite build",
         "prod": "vite build",
         "production": "vite build"
