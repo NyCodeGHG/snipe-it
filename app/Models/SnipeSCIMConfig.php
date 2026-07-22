@@ -359,6 +359,22 @@ class SnipeSCIMConfig
             'withRelations' => [],
             'description' => 'User Account',
 
+            // #18014: the arietimmerman library's ResourceController::index
+            // only adds an ORDER BY when the SCIM provider supplies sortBy, and
+            // even then only puts the id tiebreaker on the cursor branch.
+            // That leaves the startIndex/count path (which every real SCIM
+            // client uses) with a bare LIMIT/OFFSET query. MySQL is free
+            // to return rows in any order without ORDER BY, and pages can
+            // overlap when the optimizer's plan is non-stable. Handing the
+            // library a base query with orderBy('users.id') baked in gives
+            // it a stable base ordering. Trade-off. If a provider supplies
+            // sortBy=X the library appends X as a SECONDARY sort, so X
+            // becomes a tiebreaker for ids rather than the primary sort.
+            // In practice virtually no SCIM client submits sortBy, so this
+            // is an acceptable degradation for the edge case in exchange
+            // for correct pagination for everyone IMHO - snipe.
+            'query' => SCIMUser::query()->orderBy('users.id'),
+
             'map' => (new SnipeRootComplex)->withSubAttributes(
                 new class('schemas', ['urn:ietf:params:scim:schemas:core:2.0:User', self::ENTERPRISE, self::GROKABILITY]) extends Constant
                 {
@@ -674,6 +690,10 @@ class SnipeSCIMConfig
             // eager loading
             'withRelations' => [],
             'description' => 'Group',
+
+            // #18014: same stable-pagination base sort as getUserConfig.
+            // See that method for the full explanation and trade-off.
+            'query' => $this->getGroupClass()::query()->orderBy('permission_groups.id'),
 
             'map' => complex()->withSubAttributes(
                 new class('schemas', ['urn:ietf:params:scim:schemas:core:2.0:Group']) extends Constant
