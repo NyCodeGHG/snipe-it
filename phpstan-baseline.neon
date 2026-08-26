@@ -7899,7 +7899,7 @@ parameters:
 		-
 			message: '#^Method App\\Models\\Ldap\:\:bindAdminToLdap\(\) should return bool but return statement is missing\.$#'
 			identifier: return.missing
-			count: 2
+			count: 3
 			path: app/Models/Ldap.php
 
 		-
@@ -8969,18 +8969,6 @@ parameters:
 			identifier: nullCoalesce.variable
 			count: 1
 			path: app/Notifications/AuditNotification.php
-
-		-
-			message: '#^Access to an undefined property App\\Notifications\\CheckinAccessoryNotification\:\:\$admin\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app/Notifications/CheckinAccessoryNotification.php
-
-		-
-			message: '#^Constructor of class App\\Notifications\\CheckinAccessoryNotification has an unused parameter \$admin\.$#'
-			identifier: constructor.unusedParameter
-			count: 1
-			path: app/Notifications/CheckinAccessoryNotification.php
 
 		-
 			message: '#^Ternary operator condition is always true\.$#'
